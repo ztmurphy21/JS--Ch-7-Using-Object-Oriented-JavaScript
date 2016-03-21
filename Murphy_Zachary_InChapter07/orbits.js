@@ -98,11 +98,28 @@ function displayCalendar(whichMonth) {
 		}
 		document.getElementById("tripDate").value = dateObject.toLocaleDateString();
 		hideCalendar();
+		updateTotalCost();
 	}
 
 	function hideCalendar(){
 		document.getElementById("cal").style.display = "none";
 		
+	}
+	
+	function prevMo(){
+		displayCalendar(-1);
+	}
+	
+	function nextMo(){
+		displayCalendar(1);
+	}
+	
+	function updateTotalCost(){
+		var totalCost = 250000;
+		var monthlyCost = totalCost / 60;
+		var shortMonthlyCost = monthlyCost.toFixed(0);
+		document.getElementById("singleLabel").innerHTML = "Single payment of $ " + totalCost.toLocaleString();
+		document.getElementById("multipleLabel").innerHTML = "60 monthly payments of $ " + shortMonthlyCost.toLocaleString();
 	}
 	
     function createEventListeners() {
@@ -128,6 +145,16 @@ function displayCalendar(whichMonth) {
 			closeButton.addEventListener("click", hideCalendar, false);
 		}else if(closeButton.attachEvent){
 			closeButton.attachEvent("onclick", hideCalendar);
+		}
+		
+		var prevLink = document.getElementById("prev");
+		var nextLink = document.getElementById("next");
+		if(prevLink.addEventListener){
+			prevLink.addEventListener("click", prevMo, false);
+			nextLink.addEventListener("click", nextMo, false);
+		}else if (prevLink.attachEvent){
+			prevLink.attachEvent("onclick", prevMo);
+			nextLink.attachEvent("onclick", nextMo);
 		}
 	}
 	
