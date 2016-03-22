@@ -11,6 +11,12 @@
 "use strict";
 
 var dateObject = new Date();
+var countdown;
+var ticket = {
+	passengersOnTicket: 0,
+	passengers:{},
+	calcCost: updateTotalCost
+};
 
 function displayCalendar(whichMonth) {
 	var date;
@@ -26,7 +32,7 @@ function displayCalendar(whichMonth) {
 		dateObject.setMonth(dateObject.getMonth()-1);
 		
 	}else if(whichMonth === 1){
-		dateObject.setMonth(dateObject.getMonth()-1);
+		dateObject.setMonth(dateObject.getMonth()+1);
 	}
 	month = dateObject.getMonth();
 	year = dateObject.getFullYear();
@@ -98,7 +104,17 @@ function displayCalendar(whichMonth) {
 		}
 		document.getElementById("tripDate").value = dateObject.toLocaleDateString();
 		hideCalendar();
-		updateTotalCost();
+		
+		countdown = setInterval(updateCountdown, 1000);
+	document.getElementById("countdownSection").style.display = "block";
+	document.getElementById("ticket").style.display = "block";
+	ticket.date = dateObject.toLocaleDateString();
+	document.getElementById("selectedDate").innerHTML = ticket.date;
+	document.getElementById("dateSection").style.display = "block";
+	
+	ticket.date = dateObject.toLocaleDateString();
+	document.getElementById("selectedDate").innerHTML = ticket.date;
+	document.getElementById("dateSection").style.display = "block";
 	}
 
 	function hideCalendar(){
@@ -115,13 +131,85 @@ function displayCalendar(whichMonth) {
 	}
 	
 	function updateTotalCost(){
-		var totalCost = 250000;
+		var totalCost = this.passengersOnTicket*250000;
 		var monthlyCost = totalCost / 60;
 		var shortMonthlyCost = monthlyCost.toFixed(0);
 		document.getElementById("singleLabel").innerHTML = "Single payment of $ " + totalCost.toLocaleString();
 		document.getElementById("multipleLabel").innerHTML = "60 monthly payments of $ " + shortMonthlyCost.toLocaleString();
 	}
 	
+	function updateCountdown(){
+		var dateToday = new Date();
+	var dateFrom = Date.UTC(dateToday.getFullYear(),
+		dateToday.getMonth(), dateToday.getDate(),
+		dateToday.getHours(), dateToday.getMinutes(),
+		dateToday.getSeconds());
+	var dateTo = Date.UTC(dateObject.getFullYear(),
+		dateObject.getMonth(), dateObject.getDate(),
+		19, 0, 0); // all launches at 8:00pm UTC
+	if ((dateTo - dateFrom) < 1000) { // time will be less than 0 when setInterval runs next
+		clearInterval(countdown);
+		document.getElementById("countdownSection").style.display = "none";
+	}
+		
+	// days
+	var daysUntil = Math.floor((dateTo - dateFrom) / 86400000);
+	document.getElementById("countdown").innerHTML = daysUntil;
+	
+	// hours
+	var fractionalDay = (dateTo - dateFrom) % 86400000;
+	var	hoursUntil = Math.floor(fractionalDay / 3600000);
+	if (hoursUntil > 10) {
+		hoursUntil = "0" + hoursUntil;
+	}
+	document.getElementById("countdown").innerHTML += ":" + hoursUntil;
+	
+	//minutes
+	var fractionalHour = fractionalDay % 3600000;
+	var minutesUntil = Math.floor(fractionalHour / 60000);
+	if (minutesUntil < 10) {
+		minutesUntil = "0" + minutesUntil;
+	}
+	document.getElementById("countdown").innerHTML += ":" + minutesUntil;
+	
+	// seconds
+	var fractionalMinute = fractionalHour % 60000;
+	var secondsUntil = Math.floor(fractionalMinute / 1000);
+	if (secondsUntil < 10) {
+		secondsUntil = "0" + secondsUntil;
+	}
+	document.getElementById("countdown").innerHTML += ":" + secondsUntil;	
+	}
+	
+	function registerName(){
+		var passengerList = document.getElementById("passengers");
+	var passengerName = document.createElement("li");
+	var newFnameProp;
+	var newLnameProp;
+	
+	ticket.passengersOnTicket += 1;
+	newFnameProp = "fname" + ticket.passengersOnTicket;
+	newLnameProp = "lname" + ticket.passengersOnTicket;
+	
+	// add first+last names to ticket object as new properties
+	ticket.passengers[newFnameProp] = document.getElementById("fname").value;
+	ticket.passengers[newLnameProp] = document.getElementById("lname").value;
+	
+	// add entered name to passenger list in ticket section
+	passengerName.innerHTML = ticket.passengers[newFnameProp] + " " + ticket.passengers[newLnameProp];
+	passengerList.appendChild(passengerName);
+	
+	// clear first and last name from form
+	document.getElementById("fname").value = "";
+	document.getElementById("lname").value = "";
+	//display ticket and passenger section
+	document.getElementById("ticket").style.display = "block";
+	document.getElementById("passengersSection").style.display = "block";
+	// return focus to First Name field to facilitate entry of another passenger name
+	document.getElementById("fname").focus();
+	ticket.calcCost();
+	ticket.calcCost();
+	}
     function createEventListeners() {
 		var dateField = document.getElementById("tripDate");
 		if(dateField.addEventListener){
@@ -155,6 +243,14 @@ function displayCalendar(whichMonth) {
 		}else if (prevLink.attachEvent){
 			prevLink.attachEvent("onclick", prevMo);
 			nextLink.attachEvent("onclick", nextMo);
+		}
+		
+		var nameButton = document.getElementById("addName");
+		if(nameButton.addEventListener){
+			nameButton.addEventListener("click", registerName, false);
+			
+		}else if(nameButton.attachEvent){
+			nameButton.attachEvent("onclick", registerName);
 		}
 	}
 	
